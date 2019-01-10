@@ -1,0 +1,119 @@
+      Recommended Action: Neo Cloud Cockpit Compound Monitor Alert  
+ 
+Service 	RA ID 	RA Name 
+[NEO]  
+Cloud Cockpit 
+SERVICE-13 
+RA_xxxx 	Neo Cloud Cockpit Compound Monitor Alert
+ 
+ 
+ 
+Description: This alert is raised if Cloud Cockpit application is not working correctly.  
+Note: Some hyperlinks in this document may not function correctly when clicked – please copy the 
+URLs to your browser if you encounter this problem! 
+ 
+Steps to resolve the incident: 
+ 
+1.1.	Check if the issue is still present and open the respective monitor for which an SPC ticket is received
+NEO-ALL Cloud Cockpit - Database
+NEO-ALL Cloud Cockpit - DomainDB
+NEO-ALL Cloud Cockpit - Global CIS
+NEO-ALL Cloud Cockpit - Instances
+
+1.2.	If the status is UP then the incident is resolved. 
+If the status is DOWN, proceed with next step.
+ 
+For  “Instances” proceed with step 2.
+For “Domain DB” proceed with step 3.
+For “Global CIS” proceed with step 4.
+For “Database” proceed with step 5.
+
+If current Monitor Down Alert is not listed above, then directly proceed with handover step 6.
+
+2.	Instances monitor failed.
+Check if Database monitor “NEO-<landscape> Cloud Cockpit Database” also fails.
+If so then proceed with database step 5.  Otherwise continue here.
+  
+Check number of instances in monitoring cockpit for this landscape
+
+2.1.	Open NEO Monitoring Cockpit https://monitoring.<landscape>.hana.ondemand.com/cockpit 
+Once the monitoring cockpit is opened - > Click on “All” and search for “account”.
+
+ 
+
+2.2.	Look for application services:account:account in first displayed column Account : Application : Component
+check number of instances and VM State of this application
+
+2.3.	Stop (see appendix) all instances with status: VM_Failed, Error. Wait until those are stopped.
+
+2.4.	If there are less than 3 instances remaining, then start new instances according appendix.
+
+2.5.	If there are more than 4 instances running, then stop the oldest instances according appendix.
+
+2.6.	Wait until remaining 3 instances are in running status.
+
+2.7.	Check again monitor “NEO-<landscape> Cloud Cockpit Instances”.
+If the status is UP then incident is resolved.
+Otherwise proceed with handover step 6.
+
+3.	Domain DB monitor failed, which means cockpit misses important data, e.g. neo java application status.
+Check this monitor once again. If the status is still “failed” then proceed with handover step 6.
+
+4.	Global CIS monitor failed, which means cockpit misses important data, e.g. information about global accounts.
+Check this monitor once again. If the status is still “failed” then proceed with handover step 6.
+
+5.	Database monitor failed, which means cockpit cannot access its database (This will also cause Instances monitor to fail).
+In general cockpit can still be used, if the database is not accessible. Therefore just open a CRITICAL jira ticket for the Cloud Cockpit Team using this link: https://jtrack/secure/CreateIssueDetails!init.jspa?pid=10099&issuetype=1&components=11915&priority=3
+
+6.	Handover this Incident
+6.1.	Inform CE On Duty with the relevant details like Landscape and Service name that is impacted. 
+6.2.	Update the SPC with relevant findings while executing the RA 
+
+
+ Appendix: 
+ 
+Use the neo SDK command line for following actions.
+
+How to stop a Cloud Cockpit instance
+•	List number of current instances
+neo status  -h <landscape> -application account --account services  –component account
+this command lists all known instances with their ID, State and latest change
+
+•	Before stopping an instance take a thread and heap dump as described below.
+
+•	Stop a single instance by ID
+neo stop  -h <landscape> -application account --account services –component account  -I <ID>
+
+How to start a Cloud Cockpit instance
+•	neo start  -h <landscape> -application account --account services –component account
+This command starts at least the minimal configured instance count
+
+
+
+
+
+
+
+
+
+
+
+
+How to take a heap and thread dump
+
+•	From monitor cockpit
+ 
+•	Get the hostname of the VM. Connect to the VM via putty from WTS.
+•	Execute following commands 
+sudo su       
+jvmmon (find the ljs PID)
+PID-> from the above step
+dump heap
+The heap dump will be available in the monitoring cockpit Logs for the application.
+            
+In order to take a thread dump while still on the VM :
+jvmmon  
+dump stacktrace
+Print to file /xxxxx/xxxxx/xx
+Print stack trace
+
